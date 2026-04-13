@@ -21,7 +21,7 @@ export default function OverviewScreen() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("All");
 
-  // Logic: Filter transactions based on Search and Category
+  //  To Filter transactions based on Search and Category
   const filteredTransactions = transactions.filter((item) => {
     const matchesSearch = item.title
       .toLowerCase()
@@ -105,7 +105,15 @@ export default function OverviewScreen() {
               />
             ))
           ) : (
-            <Text style={styles.emptyText}>No transactions found.</Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>📂</Text>
+              <Text style={styles.emptyText}>
+                No transactions found for "{activeTab}"
+              </Text>
+              <Text style={styles.emptySubText}>
+                Try adding a new expense or changing your filter.
+              </Text>
+            </View>
           )}
         </Card>
       </ScrollView>
@@ -184,6 +192,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: Colors.light.textSub,
     marginVertical: 20,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: 30,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 10,
+  },
+  emptySubText: {
+    textAlign: "center",
+    color: Colors.light.textSub,
+    marginTop: 8,
+    fontSize: 14,
   },
   fab: {
     position: "absolute",

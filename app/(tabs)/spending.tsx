@@ -2,17 +2,31 @@ import React from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import Card from "../../components/Card";
 import { Colors } from "../../constants/Colors";
+import { useTransactions } from "../../context/TransactionContext";
 
 export default function SpendingScreen() {
-  // Mock data for the bar chart
-  const weeklyData = [
-    { day: "Mon", height: 40 },
-    { day: "Tue", height: 70 },
-    { day: "Wed", height: 50 },
-    { day: "Thu", height: 90 },
-    { day: "Fri", height: 60 },
-    { day: "Sat", height: 30 },
-    { day: "Sun", height: 45 },
+  const { transactions } = useTransactions();
+
+  // 1. Logic: Calculate real totals for specific categories
+  const calculateCategoryTotal = (catName: string) => {
+    return transactions
+      .filter((t) => t.category === catName && t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  // 2. Define Budgets
+  const budgets = [
+    {
+      name: "Shopping",
+      limit: 500,
+      current: calculateCategoryTotal("Shopping"),
+    },
+    { name: "Food", limit: 400, current: calculateCategoryTotal("Food") },
+    {
+      name: "Entertainment",
+      limit: 200,
+      current: calculateCategoryTotal("Entertainment"),
+    },
   ];
 
   return (
@@ -20,64 +34,53 @@ export default function SpendingScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Spending Analysis</Text>
 
-        {/* 1. Summary Card */}
-        <Card style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>This Week</Text>
-          <Text style={styles.summaryAmount}>$420.65</Text>
-        </Card>
-
-        {/* 2. Bar Chart Card */}
+        {/* Weekly Bar Chart */}
         <Card>
           <Text style={styles.cardTitle}>Weekly Activity</Text>
           <View style={styles.chartContainer}>
-            {weeklyData.map((item, index) => (
-              <View key={index} style={styles.barWrapper}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      height: item.height,
-                      backgroundColor:
-                        item.height > 80
-                          ? Colors.light.walletPrimary
-                          : Colors.light.walletMint,
-                    },
-                  ]}
-                />
-                <Text style={styles.barLabel}>{item.day}</Text>
-              </View>
-            ))}
+            {/* ... (Keep your weeklyData mapping here) */}
           </View>
         </Card>
 
-        {/* 3. Budget Goals Section */}
+        {/* 3. DYNAMIC BUDGET GOALS */}
         <Text style={styles.sectionTitle}>Budget Goals</Text>
         <Card>
-          <View style={styles.budgetRow}>
-            <Text style={styles.budgetName}>Entertainment</Text>
-            <Text style={styles.budgetPercent}>85%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressBar,
-                { width: "85%", backgroundColor: Colors.light.iosRed },
-              ]}
-            />
-          </View>
+          {budgets.map((budget, index) => {
+            const percentage = Math.min(
+              (budget.current / budget.limit) * 100,
+              100,
+            );
+            const isOver = budget.current > budget.limit;
 
-          <View style={[styles.budgetRow, { marginTop: 20 }]}>
-            <Text style={styles.budgetName}>Groceries</Text>
-            <Text style={styles.budgetPercent}>40%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressBar,
-                { width: "40%", backgroundColor: Colors.light.walletPrimary },
-              ]}
-            />
-          </View>
+            return (
+              <View key={index} style={{ marginBottom: 20 }}>
+                <View style={styles.budgetRow}>
+                  <Text style={styles.budgetName}>{budget.name}</Text>
+                  <Text
+                    style={[
+                      styles.budgetPercent,
+                      isOver && { color: Colors.light.iosRed },
+                    ]}
+                  >
+                    ${budget.current.toFixed(0)} / ${budget.limit}
+                  </Text>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View
+                    style={[
+                      styles.progressBar,
+                      {
+                        width: `${percentage}%`,
+                        backgroundColor: isOver
+                          ? Colors.light.iosRed
+                          : Colors.light.walletPrimary,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            );
+          })}
         </Card>
       </ScrollView>
     </SafeAreaView>
