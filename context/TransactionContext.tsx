@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { dummyTransactions } from "../data/mockData";
 
 export interface Transaction {
   id: string;
@@ -32,24 +33,33 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load data from the phone's memory when the app starts
   useEffect(() => {
     async function loadStoredData() {
       try {
         const savedData = await AsyncStorage.getItem("@wallet_transactions");
+
         if (savedData !== null) {
-          setTransactions(JSON.parse(savedData));
+          const parsedData = JSON.parse(savedData);
+
+          if (parsedData.length > 0) {
+            setTransactions(parsedData);
+          } else {
+            setTransactions(dummyTransactions);
+          }
+        } else {
+          setTransactions(dummyTransactions);
         }
       } catch (error) {
         console.log("Error loading data:", error);
+        setTransactions(dummyTransactions);
       } finally {
         setLoading(false);
       }
     }
+
     loadStoredData();
   }, []);
 
-  // Save data to the phone's memory every time the transactions list changes
   useEffect(() => {
     async function saveCurrentData() {
       try {
@@ -61,6 +71,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         console.log("Error saving data:", error);
       }
     }
+
     if (!loading) {
       saveCurrentData();
     }
