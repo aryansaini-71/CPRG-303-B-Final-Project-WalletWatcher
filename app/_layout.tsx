@@ -11,10 +11,13 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === "login" || segments[0] === "register";
+    const inAuthGroup =
+      segments[0] === "welcome" ||
+      segments[0] === "login" ||
+      segments[0] === "register";
 
     if (!user && !inAuthGroup) {
-      router.replace("/login");
+      router.replace("/welcome");
     } else if (user && inAuthGroup) {
       router.replace("/(tabs)");
     }
@@ -26,12 +29,18 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
       {/* Auth Screens */}
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="register" options={{ headerShown: false }} />
 
       {/* Modals & Sub-pages */}
       <Stack.Screen
         name="add-transaction"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      {/* Register the Edit Modal */}
+      <Stack.Screen
+        name="edit-transaction"
         options={{ presentation: "modal", headerShown: false }}
       />
       <Stack.Screen
@@ -45,8 +54,6 @@ function RootLayoutNav() {
         name="linked-accounts"
         options={{ headerTitle: "Linked Accounts", headerBackTitle: "Profile" }}
       />
-
-      {/* NEW: Notifications Screen */}
       <Stack.Screen
         name="notifications"
         options={{ headerTitle: "Notifications", headerBackTitle: "Home" }}

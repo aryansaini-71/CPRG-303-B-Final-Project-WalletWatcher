@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage"; // NEEDED FOR FACTORY RESET
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
@@ -24,7 +24,6 @@ export default function ProfileScreen() {
     await logout();
   };
 
-  // THE FACTORY RESET FUNCTION
   const handleWipeData = () => {
     Alert.alert(
       "FACTORY RESET",
@@ -35,8 +34,8 @@ export default function ProfileScreen() {
           text: "Wipe Data",
           style: "destructive",
           onPress: async () => {
-            await AsyncStorage.clear(); // Clears absolutely everything saved
-            await logout(); // Kick them to the login screen
+            await AsyncStorage.clear();
+            await logout();
           },
         },
       ],
@@ -76,7 +75,7 @@ export default function ProfileScreen() {
           <SettingRow
             icon="shield"
             title="Security & Privacy"
-            onPress={() => console.log("Security coming soon")}
+            onPress={() => console.log("Security")}
           />
         </Card>
 
@@ -87,21 +86,21 @@ export default function ProfileScreen() {
           <SettingRow
             icon="bell"
             title="Notifications"
-            onPress={() => console.log("Notifications coming soon")}
+            onPress={() => router.push("/notifications")}
           />
           <SettingRow
             icon="moon-o"
             title="Dark Mode"
-            onPress={() => console.log("Dark Mode coming soon")}
+            onPress={() => console.log("Dark Mode Coming Soon")}
           />
           <SettingRow
             icon="question-circle"
             title="Help & Support"
-            onPress={() => console.log("Support coming soon")}
+            onPress={() => console.log("Support")}
           />
         </Card>
 
-        {/* Standard Logout Button */}
+        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Sign Out</Text>
         </TouchableOpacity>
@@ -150,7 +149,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginTop: 30,
-    marginBottom: 10, // Adjusted margin to make room for danger button
+    marginBottom: 10,
     backgroundColor: "#FFE5E5",
     padding: 16,
     borderRadius: 12,
@@ -158,11 +157,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FFB3B3",
   },
-  logoutButtonText: {
-    color: "#D32F2F",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+  logoutButtonText: { color: "#D32F2F", fontWeight: "bold", fontSize: 16 },
   dangerButton: {
     marginBottom: 40,
     backgroundColor: "transparent",

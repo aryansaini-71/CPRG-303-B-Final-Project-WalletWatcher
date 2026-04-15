@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router"; // NEW: Import the router to navigate
 import React from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Colors } from "../constants/Colors";
@@ -21,8 +22,9 @@ export default function TransactionItem({
   isExpense,
 }: Props) {
   const { deleteTransaction } = useTransactions();
+  const router = useRouter(); // Initialize the router
 
-  // Function to show a confirmation popup
+  // Deletion logic (triggered by holding down on the item)
   const handleLongPress = () => {
     Alert.alert(
       "Delete Transaction",
@@ -38,8 +40,18 @@ export default function TransactionItem({
     );
   };
 
+  // NEW: Edit logic (triggered by a normal tap)
+  const handlePress = () => {
+    // We send them to the edit screen, passing the ID in the route!
+    router.push(`/edit-transaction?id=${id}`);
+  };
+
   return (
-    <TouchableOpacity onLongPress={handleLongPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.row}>
         <View style={styles.left}>
           <View style={styles.iconBg}>
@@ -74,10 +86,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
   },
-  left: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  left: { flexDirection: "row", alignItems: "center" },
   iconBg: {
     width: 44,
     height: 44,
@@ -87,16 +96,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 15,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  sub: {
-    fontSize: 12,
-    color: Colors.light.textSub,
-  },
-  amt: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
+  title: { fontSize: 16, fontWeight: "600", color: Colors.light.textMain },
+  sub: { fontSize: 12, color: Colors.light.textSub },
+  amt: { fontSize: 16, fontWeight: "700" },
 });

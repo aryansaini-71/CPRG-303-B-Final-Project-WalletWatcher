@@ -1,5 +1,5 @@
-import { FontAwesome } from "@expo/vector-icons"; // NEW: For the notification bell icon
-import { Link, useRouter } from "expo-router"; // NEW: Added useRouter for clicking the profile/bell
+import { FontAwesome } from "@expo/vector-icons"; //  For the notification bell icon
+import { Link, useRouter } from "expo-router"; // Added useRouter for clicking the profile/bell
 import React, { useState } from "react";
 import {
   SafeAreaView,
@@ -148,7 +148,7 @@ export default function OverviewScreen() {
         </Card>
       </ScrollView>
 
-      {/* FAB - Floating Action Button */}
+      {/* Floating Action Button */}
       <Link href="/add-transaction" asChild>
         <TouchableOpacity style={styles.fab}>
           <Text style={styles.fabText}>+</Text>
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  // NEW: Styles for the right side of the header
+  // Styles for the right side of the header
   headerRight: {
     flexDirection: "row",
     alignItems: "center",

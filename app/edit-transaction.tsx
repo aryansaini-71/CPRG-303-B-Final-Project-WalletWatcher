@@ -1,41 +1,60 @@
-import DateTimePicker from "@react-native-community/datetimepicker"; // NEW: Native Date Picker
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useLocalSearchParams, useRouter } from "expo-router"; // useLocalSearchParams grabs the ID
+import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { Colors } from "../constants/Colors";
 import { useTransactions } from "../context/TransactionContext";
 
-export default function AddTransactionScreen() {
+export default function EditTransactionScreen() {
   const router = useRouter();
-  const { addTransaction, categories, addCategory, deleteCategory } =
+  // Grab the ID we passed from the TransactionItem click
+  const { id } = useLocalSearchParams();
+
+  const { transactions, updateTransaction, categories, addCategory } =
     useTransactions();
 
-  // --- STATE MANAGEMENT ---
-  const [amount, setAmount] = useState("");
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState<"expense" | "income">("expense");
-  const [selectedCategory, setSelectedCategory] = useState("General");
+  // 1. Find the exact transaction we are editing
+  const existingTx = transactions.find((t) => t.id === id);
+
+  // 2. Pre-fill all the state variables with the old data!
+  const [amount, setAmount] = useState(
+    existingTx ? existingTx.amount.toString() : "",
+  );
+  const [title, setTitle] = useState(existingTx ? existingTx.title : "");
+  const [type, setType] = useState<"expense" | "income">(
+    existingTx ? existingTx.type : "expense",
+  );
+  const [selectedCategory, setSelectedCategory] = useState(
+    existingTx ? existingTx.category : "General",
+  );
   const [customCategory, setCustomCategory] = useState("");
 
-  // Date state
-  const [date, setDate] = useState(new Date());
+  // Pre-fill the date (Parse the string back into a real Date object)
+  const [date, setDate] = useState(
+    existingTx ? new Date(existingTx.date) : new Date(),
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // --- LOGIC FUNCTIONS ---
+  // Failsafe: If the transaction was somehow deleted while we were opening this screen
+  useEffect(() => {
+    if (!existingTx) {
+      Alert.alert("Error", "Transaction not found.");
+      router.back();
+    }
+  }, [existingTx]);
 
-  // Handle adding a custom category
   const handleAddCustomCategory = () => {
     if (customCategory.trim()) {
       addCategory(customCategory);
@@ -44,42 +63,18 @@ export default function AddTransactionScreen() {
     }
   };
 
-  // Handle long press to delete a category
-  const handleLongPressCategory = (cat: string) => {
-    Alert.alert(
-      "Delete Category",
-      `Are you sure you want to delete "${cat}"? Any transactions using this will be reassigned to "General".`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            deleteCategory(cat);
-            if (selectedCategory === cat) setSelectedCategory("General");
-          },
-        },
-      ],
-    );
-  };
-
-  // Handle the Date Picker selection
   const onChangeDate = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === "ios"); // iOS keeps it open, Android closes it automatically
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
+    setShowDatePicker(Platform.OS === "ios");
+    if (selectedDate) setDate(selectedDate);
   };
 
-  // Bulletproof Validation & Save Logic
+  // Save the changes
   const handleSave = () => {
-    // 1. Validate Title (Don't allow empty spaces)
     if (!title.trim()) {
       Alert.alert("Missing Info", "Please enter a title for this transaction.");
       return;
     }
 
-    // 2. Validate Math (Ensure it's a real, positive number)
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Alert.alert(
@@ -89,29 +84,27 @@ export default function AddTransactionScreen() {
       return;
     }
 
-    // 3. Assign an Icon based on category or type
+    // Assign an icon just like we do when creating one
     let icon = type === "expense" ? "💸" : "💵";
     if (selectedCategory === "Food") icon = "🍔";
     if (selectedCategory === "Shopping") icon = "🛒";
     if (selectedCategory === "Entertainment") icon = "🎬";
     if (selectedCategory === "Rent") icon = "🏠";
 
-    // 4. Save to our Global Engine!
-    addTransaction({
-      id: Math.random().toString(), // Simple ID generation
+    // Call the UPDATE function instead of the ADD function!
+    updateTransaction(id as string, {
+      id: id as string, // Keep the same ID
       title: title.trim(),
       amount: parsedAmount,
       type: type,
       category: selectedCategory,
       icon: icon,
-      date: date.toISOString(), // Convert the Date object to a string for storage
+      date: date.toISOString(), // Keep the new date
     });
 
-    // 5. Go back to the dashboard
     router.back();
   };
 
-  // --- UI RENDERING ---
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -122,9 +115,13 @@ export default function AddTransactionScreen() {
           contentContainerStyle={styles.inner}
           showsVerticalScrollIndicator={false}
         >
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.close}>✕</Text>
-          </TouchableOpacity>
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.close}>✕</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Edit Transaction</Text>
+            <View style={{ width: 24 }} /> {/* Spacer for centering */}
+          </View>
 
           {/* Amount Input */}
           <View style={styles.inputGroup}>
@@ -135,7 +132,6 @@ export default function AddTransactionScreen() {
               keyboardType="numeric"
               value={amount}
               onChangeText={setAmount}
-              autoFocus
             />
           </View>
 
@@ -180,7 +176,7 @@ export default function AddTransactionScreen() {
             onChangeText={setTitle}
           />
 
-          {/* Date Picker UI */}
+          {/* Date Picker */}
           <Text style={styles.sectionLabel}>Date</Text>
           <View style={styles.dateRow}>
             <TouchableOpacity
@@ -195,16 +191,14 @@ export default function AddTransactionScreen() {
                 value={date}
                 mode="date"
                 display="default"
-                maximumDate={new Date()} // Don't allow future dates
+                maximumDate={new Date()}
                 onChange={onChangeDate}
               />
             )}
           </View>
 
-          {/* Category Selection Section */}
-          <Text style={styles.sectionLabel}>
-            Select Category (Long press to delete)
-          </Text>
+          {/* Category Selection */}
+          <Text style={styles.sectionLabel}>Update Category</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -218,8 +212,6 @@ export default function AddTransactionScreen() {
                   selectedCategory === cat && styles.activeChip,
                 ]}
                 onPress={() => setSelectedCategory(cat)}
-                onLongPress={() => handleLongPressCategory(cat)}
-                activeOpacity={0.7}
               >
                 <Text
                   style={[
@@ -233,25 +225,9 @@ export default function AddTransactionScreen() {
             ))}
           </ScrollView>
 
-          {/* Add Custom Category Input */}
-          <View style={styles.addCategoryRow}>
-            <TextInput
-              style={styles.customCategoryInput}
-              placeholder="Add custom category..."
-              value={customCategory}
-              onChangeText={setCustomCategory}
-            />
-            <TouchableOpacity
-              style={styles.addCategoryBtn}
-              onPress={handleAddCustomCategory}
-            >
-              <Text style={styles.addCategoryBtnText}>Add</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Save Button */}
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-            <Text style={styles.saveText}>Confirm Transaction</Text>
+            <Text style={styles.saveText}>Save Changes</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -259,11 +235,21 @@ export default function AddTransactionScreen() {
   );
 }
 
-// Styles perfectly matched to your Figma theme
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFF" },
   inner: { padding: 25 },
-  close: { fontSize: 24, marginBottom: 10 },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  close: { fontSize: 24 },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: Colors.light.textMain,
+  },
   inputGroup: {
     flexDirection: "row",
     justifyContent: "center",
@@ -313,8 +299,6 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     color: Colors.light.textMain,
   },
-
-  // Date Picker styles
   dateRow: { flexDirection: "row", alignItems: "center", marginBottom: 25 },
   dateButton: {
     backgroundColor: "#F9F9FB",
@@ -326,9 +310,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   dateText: { fontSize: 16, color: Colors.light.textMain, fontWeight: "500" },
-
-  // Category Styles
-  categoryScroll: { marginBottom: 15, maxHeight: 50 },
+  categoryScroll: { marginBottom: 30, maxHeight: 50 },
   chip: {
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -340,29 +322,6 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: Colors.light.walletPrimary },
   chipText: { fontSize: 14, fontWeight: "600", color: Colors.light.textSub },
   activeChipText: { color: "#FFF" },
-  addCategoryRow: {
-    flexDirection: "row",
-    marginBottom: 40,
-    alignItems: "center",
-  },
-  customCategoryInput: {
-    flex: 1,
-    backgroundColor: "#F9F9FB",
-    borderWidth: 1,
-    borderColor: "#F2F2F7",
-    padding: 12,
-    borderRadius: 12,
-    marginRight: 10,
-    fontSize: 14,
-  },
-  addCategoryBtn: {
-    backgroundColor: Colors.light.walletMint,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  addCategoryBtnText: { color: Colors.light.walletDark, fontWeight: "bold" },
-
   saveBtn: {
     backgroundColor: Colors.light.walletDark,
     padding: 20,
