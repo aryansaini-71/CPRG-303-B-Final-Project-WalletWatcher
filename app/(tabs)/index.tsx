@@ -1,4 +1,5 @@
-import { Link } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons"; // NEW: For the notification bell icon
+import { Link, useRouter } from "expo-router"; // NEW: Added useRouter for clicking the profile/bell
 import React, { useState } from "react";
 import {
   SafeAreaView,
@@ -9,19 +10,23 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import Card from "../../components/Card";
 import TransactionItem from "../../components/TransactionItem";
 import { Colors } from "../../constants/Colors";
+import { useAuth } from "../../context/AuthContext";
 import { useTransactions } from "../../context/TransactionContext";
 
-const CATEGORIES = ["All", "Shopping", "Salary", "Food", "Entertainment"];
-
 export default function OverviewScreen() {
-  const { transactions, balance } = useTransactions();
+  const { transactions, balance, categories } = useTransactions();
+  const { user } = useAuth();
+  const router = useRouter(); // Initialize the router to handle button clicks
+
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("All");
 
-  //  To Filter transactions based on Search and Category
+  const filterOptions = ["All", ...categories];
+
   const filteredTransactions = transactions.filter((item) => {
     const matchesSearch = item.title
       .toLowerCase()
@@ -32,15 +37,42 @@ export default function OverviewScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* Header Section */}
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* INTERACTIVE HEADER SECTION */}
         <View style={styles.header}>
+          {/* Left Side: Welcome Text */}
           <View>
             <Text style={styles.welcomeText}>Welcome back,</Text>
-            <Text style={styles.nameText}>Aryan Saini</Text>
+            <Text style={styles.nameText}>{user?.name || "Guest"}</Text>
           </View>
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileInitial}>AS</Text>
+
+          {/* Right Side: Bell Icon & Profile Picture */}
+          <View style={styles.headerRight}>
+            {/* Notification Bell Button */}
+            <TouchableOpacity
+              style={styles.bellButton}
+              onPress={() => router.push("/notifications")}
+            >
+              <FontAwesome
+                name="bell-o"
+                size={24}
+                color={Colors.light.textMain}
+              />
+              {/* Optional: A tiny red dot to show unread notifications */}
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+
+            {/* Profile Picture Button */}
+            <TouchableOpacity onPress={() => router.push("/profile")}>
+              <View style={styles.profileCircle}>
+                <Text style={styles.profileInitial}>
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -69,7 +101,7 @@ export default function OverviewScreen() {
           showsHorizontalScrollIndicator={false}
           style={styles.filterScroll}
         >
-          {CATEGORIES.map((cat) => (
+          {filterOptions.map((cat) => (
             <TouchableOpacity
               key={cat}
               onPress={() => setActiveTab(cat)}
@@ -107,12 +139,9 @@ export default function OverviewScreen() {
             ))
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📂</Text>
+              <Text style={styles.emptyIcon}>🔍</Text>
               <Text style={styles.emptyText}>
-                No transactions found for "{activeTab}"
-              </Text>
-              <Text style={styles.emptySubText}>
-                Try adding a new expense or changing your filter.
+                No transactions found for "{activeTab}".
               </Text>
             </View>
           )}
@@ -131,33 +160,60 @@ export default function OverviewScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.light.background },
-  container: { padding: 20, paddingBottom: 100 },
+  container: { padding: 20, paddingBottom: 80 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
     marginBottom: 25,
+    marginTop: 10,
   },
-  welcomeText: { fontSize: 14, color: Colors.light.textSub },
-  nameText: { fontSize: 22, fontWeight: "bold", color: Colors.light.textMain },
+
+  // NEW: Styles for the right side of the header
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bellButton: {
+    marginRight: 20, // Pushes the bell away from the profile picture
+    position: "relative",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#FF3B30", // iOS Red
+    borderWidth: 2,
+    borderColor: Colors.light.background,
+  },
+
+  welcomeText: { fontSize: 14, color: Colors.light.textSub, marginBottom: 4 },
+  nameText: { fontSize: 24, fontWeight: "bold", color: Colors.light.textMain },
   profileCircle: {
-    width: 45,
-    height: 45,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: Colors.light.walletMint,
-    borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
   },
-  profileInitial: { fontWeight: "bold", color: Colors.light.walletDark },
+  profileInitial: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: Colors.light.walletDark,
+  },
   darkCard: {
     backgroundColor: Colors.light.walletDark,
+    padding: 25,
     alignItems: "center",
-    paddingVertical: 35,
+    marginBottom: 20,
   },
   balanceLabel: {
     color: Colors.light.walletMint,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "800",
     letterSpacing: 1.5,
     marginBottom: 8,
@@ -171,6 +227,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.light.textMain,
     elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
   },
   filterScroll: { marginBottom: 20 },
   chip: {
@@ -192,33 +252,30 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: "center",
     color: Colors.light.textSub,
-    marginVertical: 20,
+    marginTop: 10,
   },
   emptyContainer: {
     alignItems: "center",
     paddingVertical: 30,
   },
   emptyIcon: {
-    fontSize: 48,
-    marginBottom: 10,
-  },
-  emptySubText: {
-    textAlign: "center",
-    color: Colors.light.textSub,
-    marginTop: 8,
-    fontSize: 14,
+    fontSize: 40,
   },
   fab: {
     position: "absolute",
     bottom: 25,
-    right: 20,
+    right: 25,
     width: 60,
     height: 60,
-    backgroundColor: Colors.light.walletPrimary,
     borderRadius: 30,
+    backgroundColor: Colors.light.walletPrimary,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 8,
+    elevation: 5,
+    shadowColor: Colors.light.walletPrimary,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
   },
-  fabText: { color: "#FFF", fontSize: 30, fontWeight: "300" },
+  fabText: { fontSize: 30, color: "#FFF", fontWeight: "300", marginTop: -2 },
 });

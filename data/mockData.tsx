@@ -17,6 +17,7 @@ export const dummyTransactions: Transaction[] = [
     type: "income",
     category: "Salary",
     icon: "💰",
+    date: "",
   },
   {
     id: "2",
@@ -25,6 +26,7 @@ export const dummyTransactions: Transaction[] = [
     type: "expense",
     category: "Shopping",
     icon: "🛍️",
+    date: "",
   },
   {
     id: "3",
@@ -33,6 +35,7 @@ export const dummyTransactions: Transaction[] = [
     type: "expense",
     category: "Food",
     icon: "🛒",
+    date: "",
   },
   {
     id: "4",
@@ -41,6 +44,7 @@ export const dummyTransactions: Transaction[] = [
     type: "expense",
     category: "Entertainment",
     icon: "🎬",
+    date: "",
   },
   {
     id: "5",
@@ -49,6 +53,7 @@ export const dummyTransactions: Transaction[] = [
     type: "income",
     category: "Salary",
     icon: "💻",
+    date: "",
   },
   {
     id: "6",
@@ -57,6 +62,7 @@ export const dummyTransactions: Transaction[] = [
     type: "expense",
     category: "Food",
     icon: "☕",
+    date: "",
   },
   {
     id: "7",
@@ -65,6 +71,7 @@ export const dummyTransactions: Transaction[] = [
     type: "expense",
     category: "Shopping",
     icon: "📦",
+    date: "",
   },
   {
     id: "8",
@@ -73,6 +80,7 @@ export const dummyTransactions: Transaction[] = [
     type: "expense",
     category: "Entertainment",
     icon: "🎵",
+    date: "",
   },
 ];
 

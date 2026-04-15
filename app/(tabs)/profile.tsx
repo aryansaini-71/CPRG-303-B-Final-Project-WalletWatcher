@@ -1,6 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage"; // NEEDED FOR FACTORY RESET
 import { useRouter } from "expo-router";
 import React from "react";
 import {
+  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,16 +14,33 @@ import {
 import Card from "../../components/Card";
 import SettingRow from "../../components/SettingRow";
 import { Colors } from "../../constants/Colors";
-import { useAuth } from "../../context/AuthContext"; // 1. Import Auth
+import { useAuth } from "../../context/AuthContext";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuth(); // 2. Pull user and logout function
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    // The Gatekeeper in _layout.tsx will automatically see user is null
-    // and push you back to the login screen!
+  };
+
+  // THE FACTORY RESET FUNCTION
+  const handleWipeData = () => {
+    Alert.alert(
+      "FACTORY RESET",
+      "This will delete ALL transactions and log you out. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Wipe Data",
+          style: "destructive",
+          onPress: async () => {
+            await AsyncStorage.clear(); // Clears absolutely everything saved
+            await logout(); // Kick them to the login screen
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -30,12 +49,11 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header (Now Dynamic based on login!) */}
+        {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarLarge}>
-            {/* Grab the first letter of their name, or default to U */}
             <Text style={styles.avatarText}>
-              {user?.name ? user.name.charAt(0) : "U"}
+              {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
             </Text>
           </View>
           <Text style={styles.name}>{user?.name || "User"}</Text>
@@ -58,7 +76,7 @@ export default function ProfileScreen() {
           <SettingRow
             icon="shield"
             title="Security & Privacy"
-            onPress={() => console.log("Security")}
+            onPress={() => console.log("Security coming soon")}
           />
         </Card>
 
@@ -66,14 +84,31 @@ export default function ProfileScreen() {
 
         <Text style={styles.sectionLabel}>PREFERENCES</Text>
         <Card>
-          <SettingRow icon="bell" title="Notifications" />
-          <SettingRow icon="moon-o" title="Dark Mode" />
-          <SettingRow icon="question-circle" title="Help & Support" />
+          <SettingRow
+            icon="bell"
+            title="Notifications"
+            onPress={() => console.log("Notifications coming soon")}
+          />
+          <SettingRow
+            icon="moon-o"
+            title="Dark Mode"
+            onPress={() => console.log("Dark Mode coming soon")}
+          />
+          <SettingRow
+            icon="question-circle"
+            title="Help & Support"
+            onPress={() => console.log("Support coming soon")}
+          />
         </Card>
 
-        {/* 3. The Logout Button */}
+        {/* Standard Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Sign Out</Text>
+        </TouchableOpacity>
+
+        {/* Factory Reset Button */}
+        <TouchableOpacity style={styles.dangerButton} onPress={handleWipeData}>
+          <Text style={styles.dangerButtonText}>Wipe All App Data</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -113,11 +148,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     letterSpacing: 1,
   },
-
-  // New styles for logout button
   logoutButton: {
     marginTop: 30,
-    marginBottom: 40,
+    marginBottom: 10, // Adjusted margin to make room for danger button
     backgroundColor: "#FFE5E5",
     padding: 16,
     borderRadius: 12,
@@ -129,5 +162,17 @@ const styles = StyleSheet.create({
     color: "#D32F2F",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  dangerButton: {
+    marginBottom: 40,
+    backgroundColor: "transparent",
+    padding: 16,
+    alignItems: "center",
+  },
+  dangerButtonText: {
+    color: "#999",
+    fontWeight: "600",
+    fontSize: 14,
+    textDecorationLine: "underline",
   },
 });

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -8,53 +9,42 @@ import {
   View,
 } from "react-native";
 import { Colors } from "../constants/Colors";
-
-interface UserFormData {
-  name: string;
-  email: string;
-  phone: string;
-}
+import { useAuth } from "../context/AuthContext"; // Pulling in our engine!
 
 export default function PersonalInfoScreen() {
-  const [formData, setFormData] = useState<UserFormData>({
-    name: "Aryan Saini",
-    email: "aryan@example.com",
-    phone: "+1 234 567 890",
-  });
+  const router = useRouter();
+  const { user, updateUser } = useAuth(); // Grab the current user and the update function
 
-  const handleSave = (): void => {
-    Alert.alert("Success", "Profile information updated!");
+  // Start the form with their real data, not hardcoded placeholders
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+
+  const handleSave = async () => {
+    if (!name.trim() || !email.trim()) {
+      Alert.alert("Error", "Name and Email cannot be empty.");
+      return;
+    }
+
+    // Call our new context function to save globally
+    await updateUser(name, email);
+
+    Alert.alert("Success", "Profile information updated!", [
+      { text: "OK", onPress: () => router.back() }, // Send them back to Profile when done
+    ]);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Full Name</Text>
-      <TextInput
-        style={styles.input}
-        value={formData.name}
-        onChangeText={(text: string) =>
-          setFormData({ ...formData, name: text })
-        }
-      />
+      <TextInput style={styles.input} value={name} onChangeText={setName} />
 
       <Text style={styles.label}>Email Address</Text>
       <TextInput
         style={styles.input}
         keyboardType="email-address"
-        value={formData.email}
-        onChangeText={(text: string) =>
-          setFormData({ ...formData, email: text })
-        }
-      />
-
-      <Text style={styles.label}>Phone Number</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="phone-pad"
-        value={formData.phone}
-        onChangeText={(text: string) =>
-          setFormData({ ...formData, phone: text })
-        }
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
       />
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -64,6 +54,7 @@ export default function PersonalInfoScreen() {
   );
 }
 
+// Keeping Alex's clean styles
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#FFF" },
   label: { fontSize: 14, fontWeight: "600", color: "#666", marginBottom: 8 },
@@ -81,6 +72,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
+    marginTop: 20,
   },
   saveButtonText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
 });
