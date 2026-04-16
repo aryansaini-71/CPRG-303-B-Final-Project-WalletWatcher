@@ -3,7 +3,7 @@ import React from "react";
 import { FlatList, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { Colors } from "../constants/Colors";
 
-// 1. Import Sargam's mock data
+// 1. Import mock data
 import { AppNotification, dummyNotifications } from "../data/mockData";
 
 export default function NotificationsScreen() {
