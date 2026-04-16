@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router"; // NEW: Import the router to navigate
+import { useRouter } from "expo-router"; // Import the router to navigate
 import React from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Colors } from "../constants/Colors";
@@ -24,7 +24,7 @@ export default function TransactionItem({
   const { deleteTransaction } = useTransactions();
   const router = useRouter(); // Initialize the router
 
-  // Deletion logic (triggered by holding down on the item)
+  // Deletion logic
   const handleLongPress = () => {
     Alert.alert(
       "Delete Transaction",
@@ -40,7 +40,7 @@ export default function TransactionItem({
     );
   };
 
-  // NEW: Edit logic (triggered by a normal tap)
+  // Edit logic (triggered by a normal tap)
   const handlePress = () => {
     // We send them to the edit screen, passing the ID in the route!
     router.push(`/edit-transaction?id=${id}`);

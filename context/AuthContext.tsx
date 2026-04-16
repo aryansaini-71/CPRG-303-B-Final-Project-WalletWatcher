@@ -1,76 +1,91 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Session } from "@supabase/supabase-js";
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
+import { supabase } from "../utils/supabase";
 
-export interface User {
+export interface AppUser {
+  id: string;
   name: string;
   email: string;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   isLoading: boolean;
-  login: (email: string) => Promise<void>;
-  register: (name: string, email: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ error: any }>;
+  register: (
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<{ error: any }>;
   logout: () => Promise<void>;
-  updateUser: (name: string, email: string) => Promise<void>; // NEW: Ability to edit profile
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function checkLoginStatus() {
-      try {
-        const savedUser = await AsyncStorage.getItem("@wallet_user");
-        if (savedUser) setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.log("Error checking auth status:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    checkLoginStatus();
-  }, []);
-
-  const login = async (email: string) => {
-    // For our mock auth, we just extract a name from the email
-    const fallbackName = email.split("@")[0];
-    const mockUser = { name: fallbackName, email: email };
-    setUser(mockUser);
-    await AsyncStorage.setItem("@wallet_user", JSON.stringify(mockUser));
+  const formatUser = (session: Session | null): AppUser | null => {
+    if (!session?.user) return null;
+    return {
+      id: session.user.id,
+      email: session.user.email || "",
+      name: session.user.user_metadata?.name || "User",
+    };
   };
 
-  const register = async (name: string, email: string) => {
-    const newUser = { name, email };
-    setUser(newUser);
-    await AsyncStorage.setItem("@wallet_user", JSON.stringify(newUser));
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(formatUser(session));
+      setIsLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(formatUser(session));
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // --- THE CORE SUPABASE FUNCTIONS ---
+
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
+  };
+
+  const register = async (email: string, password: string, name: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name,
+        },
+      },
+    });
+    return { error };
   };
 
   const logout = async () => {
-    setUser(null);
-    await AsyncStorage.removeItem("@wallet_user");
-  };
-
-  // NEW: Update existing user data
-  const updateUser = async (name: string, email: string) => {
-    const updatedUser = { name, email };
-    setUser(updatedUser);
-    await AsyncStorage.setItem("@wallet_user", JSON.stringify(updatedUser));
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, isLoading, login, register, logout, updateUser }}
-    >
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -48,7 +48,6 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarLarge}>
             <Text style={styles.avatarText}>
@@ -59,7 +58,6 @@ export default function ProfileScreen() {
           <Text style={styles.subText}>{user?.email || "No email"}</Text>
         </View>
 
-        {/* Settings Groups */}
         <Text style={styles.sectionLabel}>ACCOUNT</Text>
         <Card>
           <SettingRow
@@ -91,7 +89,7 @@ export default function ProfileScreen() {
           <SettingRow
             icon="moon-o"
             title="Dark Mode"
-            onPress={() => console.log("Dark Mode Coming Soon")}
+            onPress={() => console.log("Dark Mode coming in v2!")}
           />
           <SettingRow
             icon="question-circle"
@@ -100,12 +98,10 @@ export default function ProfileScreen() {
           />
         </Card>
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Sign Out</Text>
         </TouchableOpacity>
 
-        {/* Factory Reset Button */}
         <TouchableOpacity style={styles.dangerButton} onPress={handleWipeData}>
           <Text style={styles.dangerButtonText}>Wipe All App Data</Text>
         </TouchableOpacity>
