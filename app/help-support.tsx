@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -16,10 +15,6 @@ import { Colors } from "../constants/Colors";
 
 export default function HelpSupportScreen() {
   const router = useRouter();
-
-  const showMessage = (title: string) => {
-    Alert.alert(title, "This feature will be added soon.");
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -40,22 +35,22 @@ export default function HelpSupportScreen() {
           <SettingRow
             icon="question-circle"
             title="FAQ"
-            onPress={() => showMessage("FAQ")}
+            onPress={() => router.push("/faq" as any)}
           />
           <SettingRow
             icon="envelope"
             title="Contact Support"
-            onPress={() => showMessage("Contact Support")}
+            onPress={() => router.push("/contact" as any)}
           />
           <SettingRow
             icon="bug"
             title="Report a Bug"
-            onPress={() => showMessage("Report a Bug")}
+            onPress={() => router.push("/report-bug" as any)}
           />
           <SettingRow
             icon="comment"
             title="Send Feedback"
-            onPress={() => showMessage("Send Feedback")}
+            onPress={() => router.push("/feedback" as any)}
           />
         </Card>
 
@@ -71,12 +66,7 @@ export default function HelpSupportScreen() {
           <SettingRow
             icon="info-circle"
             title="App Information"
-            onPress={() =>
-              Alert.alert(
-                "Wallet Watcher",
-                "Version 1.0.0\nBuilt with Expo React Native.",
-              )
-            }
+            onPress={() => router.push("/app-info" as any)}
           />
         </Card>
 
