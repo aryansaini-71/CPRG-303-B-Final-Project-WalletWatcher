@@ -1,4 +1,5 @@
 # Welcome to your Expo app 👋
+Right now we are using a hybrid protocol where we are using Supabase for authentication and to save our transcations and category data we are using the local storage(AsyncStorage). Making our Hybrid Application.
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
