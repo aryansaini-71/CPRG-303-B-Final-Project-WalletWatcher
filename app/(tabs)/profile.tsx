@@ -94,7 +94,7 @@ export default function ProfileScreen() {
           <SettingRow
             icon="question-circle"
             title="Help & Support"
-            onPress={() => console.log("Support")}
+            onPress={() => router.push("../help-support")}
           />
         </Card>
 
