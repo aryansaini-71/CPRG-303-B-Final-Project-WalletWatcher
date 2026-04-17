@@ -1,51 +1,27 @@
 # Welcome to your Expo app 👋
 Right now we are using a hybrid protocol where we are using Supabase for authentication and to save our transcations and category data we are using the local storage(AsyncStorage). Making our Hybrid Application.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Wallet Watcher - Authentication Integration
 
-## Get started
+This project integrates Supabase Authentication into our Expo React Native application. It features protected routing, session persistence, and client-side form validation using React Hook Form and Zod.
 
-1. Install dependencies
+## Team Members
+* Aryan Saini (Lead Developer - Backend Engine & Routing)
+* Alex (UI/UX - Zod Form Validation)
+* Sargam (Infrastructure & Documentation)
 
-   ```bash
-   npm install
-   ```
+## Setup Instructions
+1. Clone this repository to your local machine.
+2. Run `npm install` to install all dependencies.
+3. (Imp) Create a `.env` file in the root directory and add the Supabase API keys provided directly by the development team.
+4. Run `npm start` to start the development server.
 
-2. Start the app
+## Supabase Notes
+* We are using Supabase Auth for our user management system.
+* Email confirmations have been disabled in our Supabase project settings to allow for instant testing.
+* Session persistence is handled securely via `@react-native-async-storage/async-storage`.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Test Account
+To test the protected routing and session persistence without creating a new account, you may use the following credentials:
+* **Email:** aryan@test.com
+* **Password:** password123
