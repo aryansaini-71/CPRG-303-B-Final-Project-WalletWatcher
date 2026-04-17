@@ -9,5 +9,9 @@ export const Colors = {
     cardBg: "#FFFFFF",
     border: "#EEEEEE",
     iosRed: "#FF3B30",
+
+    tabIconDefault: "#9BA1A6",
+    tabIconSelected: "#1B4332",
+    cardBackground: "#FFFFFF",
   },
 };

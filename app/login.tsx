@@ -1,81 +1,154 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import * as z from "zod";
+
 import { Colors } from "../constants/Colors";
 import { useAuth } from "../context/AuthContext";
 
+// 1. ZOD SCHEMA: Define the strict rules for our form
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, { message: "Email is required." })
+    .email({ message: "Please enter a valid email address." }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters long." }),
+});
+
+// Extract the TypeScript type directly from the Zod schema
+type LoginFormValues = z.infer<typeof loginSchema>;
+
 export default function LoginScreen() {
-  const router = useRouter();
   const { login } = useAuth();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // Just for UI, we are mocking the backend
+  // 2. INITIALIZE HOOK FORM: Connect it to our Zod schema
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleLogin = async () => {
-    if (!email) return;
+  // 3. THE SUBMIT ACTION: Only fires if Zod says the data is perfect
+  const onSubmit = async (data: LoginFormValues) => {
+    setIsSubmitting(true);
 
-    // Call our mock login function
-    await login(email);
+    // Call the engine we built in the last step!
+    const { error } = await login(data.email, data.password);
 
-    // Send them to the dashboard
-    router.replace("/(tabs)");
+    setIsSubmitting(false);
+
+    if (error) {
+      // Supabase sends back nice error messages
+      Alert.alert("Login Failed", error.message);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.inner}
+        style={styles.keyboardView}
       >
-        <View style={styles.headerContainer}>
-          <View style={styles.iconPlaceholder}>
-            <Text style={styles.iconText}>🍃</Text>
-          </View>
+        <View style={styles.inner}>
+          {/* Header */}
           <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to Wallet Watcher</Text>
-        </View>
+          <Text style={styles.subtitle}>
+            Log in to manage your finances securely.
+          </Text>
 
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>Email Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="hello@example.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
+          {/* EMAIL FIELD */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email Address</Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.email && styles.inputError]}
+                  placeholder="name@example.com"
+                  placeholderTextColor="#999"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                />
+              )}
+            />
+            {/* Display Zod Error Message if there is one */}
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email.message}</Text>
+            )}
+          </View>
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          {/* PASSWORD FIELD */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Password</Text>
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.password && styles.inputError]}
+                  placeholder="••••••••"
+                  placeholderTextColor="#999"
+                  secureTextEntry
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                />
+              )}
+            />
+            {errors.password && (
+              <Text style={styles.errorText}>{errors.password.message}</Text>
+            )}
+          </View>
 
-          <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
-            <Text style={styles.primaryButtonText}>Sign In</Text>
+          {/* SUBMIT BUTTON */}
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Log In</Text>
+            )}
           </TouchableOpacity>
-        </View>
 
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <Link href="/register" asChild>
-            <TouchableOpacity>
-              <Text style={styles.footerLink}>Create one</Text>
-            </TouchableOpacity>
-          </Link>
+          {/* NAVIGATION TO REGISTER */}
+          <View style={styles.footerRow}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Link href="/register" asChild>
+              <TouchableOpacity>
+                <Text style={styles.footerLink}>Sign Up</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -83,67 +156,64 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF" },
-  inner: { flex: 1, padding: 25, justifyContent: "center" },
-  headerContainer: { alignItems: "center", marginBottom: 40 },
-  iconPlaceholder: {
-    width: 70,
-    height: 70,
-    backgroundColor: Colors.light.walletMint,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  iconText: { fontSize: 35 },
+  container: { flex: 1, backgroundColor: Colors.light.background },
+  keyboardView: { flex: 1 },
+  inner: { padding: 30, flex: 1, justifyContent: "center" },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
     color: Colors.light.textMain,
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  subtitle: { fontSize: 16, color: Colors.light.textSub },
-  formContainer: { marginBottom: 30 },
+  subtitle: { fontSize: 16, color: Colors.light.textSub, marginBottom: 40 },
+  inputGroup: { marginBottom: 20 },
   label: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.light.textSub,
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textMain,
     marginBottom: 8,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: "#F9F9FB",
+    backgroundColor: "#FFF",
     borderWidth: 1,
-    borderColor: "#F2F2F7",
-    padding: 15,
+    borderColor: Colors.light.border,
+    padding: 16,
     borderRadius: 12,
     fontSize: 16,
-    marginBottom: 20,
     color: Colors.light.textMain,
+  },
+  inputError: { borderColor: Colors.light.iosRed, backgroundColor: "#FFF0F0" },
+  errorText: {
+    color: Colors.light.iosRed,
+    fontSize: 12,
+    marginTop: 5,
+    fontWeight: "500",
   },
   primaryButton: {
     backgroundColor: Colors.light.walletDark,
-    padding: 18,
-    borderRadius: 15,
+    paddingVertical: 18,
+    borderRadius: 12,
     alignItems: "center",
     marginTop: 10,
-    shadowColor: Colors.light.walletDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    marginBottom: 30,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
-  primaryButtonText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
-  footerContainer: {
+  primaryButtonText: { color: "#FFF", fontSize: 18, fontWeight: "bold" },
+  footerRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 20,
+    alignItems: "center",
   },
-  footerText: { color: Colors.light.textSub, fontSize: 15 },
+  footerText: { fontSize: 15, color: Colors.light.textSub },
   footerLink: {
-    color: Colors.light.walletPrimary,
     fontSize: 15,
     fontWeight: "bold",
+    color: Colors.light.walletPrimary,
   },
 });
