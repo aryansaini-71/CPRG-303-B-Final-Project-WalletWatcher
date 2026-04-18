@@ -13,7 +13,7 @@ This project integrates Supabase Authentication into our Expo React Native appli
 ## Setup Instructions
 1. Clone this repository to your local machine.
 2. Run `npm install` to install all dependencies.
-3. (Imp) Create a `.env` file in the root directory and add the Supabase API keys provided directly by the development team.
+3. (Imp) Create a `.env` file in the root directory and add the Supabase API keys provided directly by the development team in D2L.
 4. Run `npm start` to start the development server.
 
 ## Supabase Notes
